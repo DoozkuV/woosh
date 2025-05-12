@@ -1,8 +1,9 @@
 use crate::ast::{Command, Redirection, SimpleCommand, OPERATORS};
+use anyhow::{anyhow, Context};
 use nom::{
     bytes::complete::{tag, take_while1},
     character::complete::{multispace0, space1},
-    combinator::opt,
+    combinator::{all_consuming, opt},
     error::{Error, ErrorKind},
     multi::separated_list0,
     sequence::{delimited, preceded},
@@ -58,6 +59,10 @@ fn pipeline(input: &str) -> IResult<&str, Command> {
 }
 
 // TODO: Create a better error type
-pub fn parse(input: &str) -> Result<Command, nom::Err<nom::error::Error<&str>>> {
-    pipeline(input).map(|res| res.1)
+pub fn parse(input: &str) -> anyhow::Result<Command> {
+    all_consuming(pipeline)
+        .parse(input)
+        .map(|(_, cmd)| cmd)
+        .map_err(|e| anyhow!("parse error: {:?}", e))
+        .context("while parsing shell command")
 }
