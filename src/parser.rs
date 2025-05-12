@@ -1,4 +1,4 @@
-use crate::ast::types::{Command, Redirection, SimpleCommand, OPERATORS};
+use crate::ast::{Command, Redirection, SimpleCommand, OPERATORS};
 use nom::{
     bytes::complete::{tag, take_while1},
     character::complete::{multispace0, space1},

@@ -1,4 +1,4 @@
-use woosh::parser::shell::parse;
+use woosh::parser::parse;
 
 fn main() {
     let input = "echo hello world | sed 's/h/H/g' |grep foo > out.txt";

@@ -1,4 +1,4 @@
-pub static OPERATORS: [char; 2] = ['|', '>'];
+pub const OPERATORS: [char; 2] = ['|', '>'];
 
 #[derive(Debug)]
 pub enum Command {
