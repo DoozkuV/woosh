@@ -45,17 +45,27 @@ fn simple_command(input: &str) -> IResult<&str, SimpleCommand> {
 }
 
 fn pipeline(input: &str) -> IResult<&str, Command> {
+    let (input, _) = multispace0(input)?;
+
+    if input.is_empty() {
+        return Ok((input, Command::Empty));
+    }
+
     let (input, cmds) = separated_list0(
         delimited(multispace0, tag("|"), multispace0),
         simple_command,
     )
     .parse(input)?;
 
-    if cmds.len() == 1 {
-        Ok((input, Command::Simple(cmds.into_iter().next().unwrap())))
-    } else {
-        Ok((input, Command::Pipeline(cmds)))
-    }
+    let (input, _) = multispace0(input)?; // Skip trailing whitespace
+
+    Ok((
+        input,
+        match cmds.len() {
+            1 => Command::Simple(cmds.into_iter().next().unwrap()),
+            _ => Command::Pipeline(cmds),
+        },
+    ))
 }
 
 // TODO: Create a better error type

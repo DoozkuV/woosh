@@ -4,6 +4,7 @@ pub const OPERATORS: [char; 2] = ['|', '>'];
 pub enum Command {
     Simple(SimpleCommand),
     Pipeline(Vec<SimpleCommand>),
+    Empty,
 }
 
 #[derive(Debug)]
