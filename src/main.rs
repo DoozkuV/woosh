@@ -1,19 +1,24 @@
-use std::{env, process::exit};
+use anyhow::{Ok, Result};
+use clap::Parser;
+use woosh::executor::eval;
+use woosh::parser::parse_line;
+use woosh::repl::start_interactive;
 
-use anyhow::Result;
-use woosh::{executor::eval, parser::parse};
+#[derive(Parser, Debug)]
+struct Args {
+    /// Execute a one-liner command
+    #[arg(short = 'c', long = "command")]
+    command: Option<String>,
+}
 
 fn main() -> Result<()> {
-    let args: Vec<String> = env::args().collect();
-    if args.len() <= 1 {
-        eprintln!("Invalid number of arguments: {}", args.len());
-        exit(1);
+    let args = Args::parse();
+
+    if let Some(cmd) = args.command {
+        let ast = parse_line(cmd.as_str())?;
+        eval(ast)?;
+    } else {
+        start_interactive()?;
     }
-
-    println!("{:?}", args);
-    let input = args[1..].join(" ");
-
-    let ast = parse(input.as_str())?;
-    eval(ast).unwrap();
     Ok(())
 }

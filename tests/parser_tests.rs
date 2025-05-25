@@ -1,26 +1,26 @@
 #[cfg(test)]
 mod tests {
     use woosh::ast::{Command, Redirection};
-    use woosh::parser::parse;
+    use woosh::parser::parse_line;
 
     #[test]
     fn test_empty_input() {
         let input = "";
-        let ast = parse(input).unwrap();
+        let ast = parse_line(input).unwrap();
         assert!(matches!(ast, Command::Empty));
     }
 
     #[test]
     fn test_whitespace_input() {
         let input = "    ";
-        let ast = parse(input).unwrap();
+        let ast = parse_line(input).unwrap();
         assert!(matches!(ast, Command::Empty));
     }
 
     #[test]
     fn test_simple_command() {
         let input = "ls -l";
-        let ast = parse(input).unwrap();
+        let ast = parse_line(input).unwrap();
 
         if let Command::Simple(simple) = ast {
             assert_eq!(simple.program, "ls");
@@ -34,7 +34,7 @@ mod tests {
     #[test]
     fn test_trailing_whitespace() {
         let input = "ls -l    ";
-        let ast = parse(input).unwrap();
+        let ast = parse_line(input).unwrap();
 
         if let Command::Simple(simple) = ast {
             assert_eq!(simple.program, "ls");
@@ -48,7 +48,7 @@ mod tests {
     #[test]
     fn test_pipeline() {
         let input = "ls -l | grep rs | wc -l";
-        let ast = parse(input).unwrap();
+        let ast = parse_line(input).unwrap();
 
         if let Command::Pipeline(commands) = ast {
             assert_eq!(commands.len(), 3);
@@ -72,7 +72,7 @@ mod tests {
     #[test]
     fn test_output_redirection() {
         let input = "ls > output.txt";
-        let ast = parse(input).unwrap();
+        let ast = parse_line(input).unwrap();
 
         if let Command::Simple(simple) = ast {
             assert_eq!(simple.program, "ls");
@@ -90,7 +90,7 @@ mod tests {
     #[test]
     fn test_pipeline_with_redirection() {
         let input = "ls | grep rs > output.txt";
-        let ast = parse(input).unwrap();
+        let ast = parse_line(input).unwrap();
 
         if let Command::Pipeline(commands) = ast {
             assert_eq!(commands.len(), 2);
@@ -114,19 +114,19 @@ mod tests {
     #[test]
     fn test_invalid_pipe_ending() {
         let input = "ls |";
-        assert!(parse(input).is_err());
+        assert!(parse_line(input).is_err());
     }
 
     #[test]
     fn test_invalid_redirection() {
         let input = "> output.txt";
-        assert!(parse(input).is_err());
+        assert!(parse_line(input).is_err());
     }
 
     #[test]
     fn test_complex_command() {
         let input = "find . -name '*.rs' | xargs grep 'pattern' > results.txt";
-        let ast = parse(input).unwrap();
+        let ast = parse_line(input).unwrap();
 
         if let Command::Pipeline(commands) = ast {
             assert_eq!(commands.len(), 2);

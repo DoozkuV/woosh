@@ -69,7 +69,7 @@ fn pipeline(input: &str) -> IResult<&str, Command> {
 }
 
 // TODO: Create a better error type
-pub fn parse(input: &str) -> anyhow::Result<Command> {
+pub fn parse_line(input: &str) -> anyhow::Result<Command> {
     all_consuming(pipeline)
         .parse(input)
         .map(|(_, cmd)| cmd)
