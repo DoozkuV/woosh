@@ -1,7 +1,7 @@
 use crate::ast::{Command, Redirection, SimpleCommand, OPERATORS};
 use anyhow::{anyhow, Context};
+use nom::bytes::complete::{is_not, tag, take_while1};
 use nom::{
-    bytes::complete::{tag, take_while1},
     character::complete::{multispace0, space1},
     combinator::{all_consuming, opt},
     error::{Error, ErrorKind},
@@ -10,21 +10,30 @@ use nom::{
     Err, IResult, Parser,
 };
 
+fn single_quoted_word(input: &str) -> IResult<&str, &str> {
+    delimited(tag("'"), is_not("'"), tag("'")).parse(input)
+}
+
 /// A shell word is anything non-whitespace and not a redirection/operator
-fn word(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| !c.is_whitespace() && !OPERATORS.contains(&c))(input)
+fn token(input: &str) -> IResult<&str, String> {
+    separated_list0(
+        single_quoted_word,
+        take_while1(|c: char| !c.is_whitespace() && !OPERATORS.contains(&c)),
+    )
+    .parse(input)
+    .map(|(l, r)| (l, r.concat()))
 }
 
 fn redirection(input: &str) -> IResult<&str, Redirection> {
     let (input, _) = preceded(multispace0, tag(">")).parse(input)?;
     let (input, _) = multispace0(input)?;
-    let (input, file) = word(input)?;
+    let (input, file) = token(input)?;
 
     Ok((input, Redirection::Stdout(file.to_string())))
 }
 
 fn simple_command(input: &str) -> IResult<&str, SimpleCommand> {
-    let (input, words) = separated_list0(space1, word).parse(input)?;
+    let (input, words) = separated_list0(space1, token).parse(input)?;
     let (input, redirection) = opt(redirection).parse(input)?;
 
     if words.is_empty() {
